@@ -17,11 +17,13 @@
 package com.uphyca.idobata.android;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -41,6 +43,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        supportRequestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         mCookieHandler = new CookieHandlerAdapter();
         mWebView = new WebView(this);
         WebSettings settings = mWebView.getSettings();
@@ -67,7 +70,13 @@ public class MainActivity extends ActionBarActivity {
             }
 
             @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                setSupportProgressBarIndeterminateVisibility(true);
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
+                setSupportProgressBarIndeterminateVisibility(false);
                 startService(new Intent(MainActivity.this, IdobataService.class));
             }
         });
