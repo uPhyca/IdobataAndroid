@@ -25,36 +25,37 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
 import android.webkit.CookieSyncManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-
-import java.net.CookieHandler;
+import android.widget.Toast;
 
 /**
  * @author Sosuke Masui (masui@uphyca.com)
  */
 public class MainActivity extends ActionBarActivity {
 
-    private WebView mWebView;
+    private static final int READ_REQUEST_CODE = 42;
 
-    private CookieHandler mCookieHandler;
+    private WebView mWebView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         supportRequestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-        mCookieHandler = new CookieHandlerAdapter();
         mWebView = new WebView(this);
         WebSettings settings = mWebView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
         settings.setPluginState(WebSettings.PluginState.ON);
-        settings.setBuiltInZoomControls(true);
+        settings.setBuiltInZoomControls(false);
         settings.setAppCacheEnabled(true);
         settings.setDatabaseEnabled(true);
         settings.setDomStorageEnabled(true);
+
+        mWebView.addJavascriptInterface(new IdobataInterface(), "$Idobata");
 
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
@@ -78,6 +79,7 @@ public class MainActivity extends ActionBarActivity {
             public void onPageFinished(WebView view, String url) {
                 setSupportProgressBarIndeterminateVisibility(false);
                 startService(new Intent(MainActivity.this, IdobataService.class));
+                mWebView.loadUrl("javascript:document.getElementsByClassName('image-upload-field')[0].addEventListener('click', function(){$Idobata.uploadFile()}, false);");
             }
         });
 
@@ -126,5 +128,31 @@ public class MainActivity extends ActionBarActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
+        if (requestCode == READ_REQUEST_CODE && resultCode == RESULT_OK) {
+            Uri uri = null;
+            if (resultData != null) {
+                uri = resultData.getData();
+                Toast.makeText(this, "NOT IMPLEMENTED; " + uri, Toast.LENGTH_SHORT)
+                     .show();
+            }
+        }
+    }
+
+    private void performFileSearch() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        startActivityForResult(intent, READ_REQUEST_CODE);
+    }
+
+    private class IdobataInterface {
+        @JavascriptInterface
+        public void uploadFile() {
+            performFileSearch();
+        }
     }
 }
