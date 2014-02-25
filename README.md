@@ -1,0 +1,1 @@
+An unofficial Idobata(https://idobata.io) client implementation for Android.
