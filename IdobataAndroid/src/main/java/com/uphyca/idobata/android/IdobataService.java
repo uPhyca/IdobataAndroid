@@ -23,6 +23,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+
 import com.uphyca.idobata.Idobata;
 import com.uphyca.idobata.IdobataError;
 import com.uphyca.idobata.IdobataStream;
@@ -30,8 +31,9 @@ import com.uphyca.idobata.event.MessageCreatedEvent;
 import com.uphyca.idobata.model.Seed;
 import com.uphyca.idobata.model.User;
 
-import javax.inject.Inject;
 import java.io.IOException;
+
+import javax.inject.Inject;
 
 /**
  * @author Sosuke Masui (masui@uphyca.com)
@@ -88,8 +90,9 @@ public class IdobataService extends Service {
             @Override
             public void onEvent(MessageCreatedEvent event) {
                 PendingIntent pi = buildPendingIntent();
-                String text = buildText(event);
-                Notification notification = buildNotification(pi, text);
+                CharSequence title = buildTitle(event);
+                CharSequence text = buildText(event);
+                Notification notification = buildNotification(pi, title, text);
                 NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                 notificationManager.notify(R.string.app_name, notification);
             }
@@ -104,7 +107,13 @@ public class IdobataService extends Service {
         return null;
     }
 
-    private String buildText(MessageCreatedEvent event) {
+    private CharSequence buildTitle(MessageCreatedEvent event) {
+        return new StringBuilder().append(event.getOrganizationSlug())
+                                  .append('/')
+                                  .append(event.getRoomName());
+    }
+
+    private CharSequence buildText(MessageCreatedEvent event) {
         return new StringBuilder().append(event.getSenderName())
                                   .append(':')
                                   .append(' ')
@@ -119,9 +128,9 @@ public class IdobataService extends Service {
         return PendingIntent.getActivity(IdobataService.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    private Notification buildNotification(PendingIntent pi, String text) {
-        return new NotificationCompat.Builder(IdobataService.this).setSmallIcon(R.drawable.ic_launcher)
-                                                                  .setContentTitle(getString(R.string.app_name))
+    private Notification buildNotification(PendingIntent pi, CharSequence title, CharSequence text) {
+        return new NotificationCompat.Builder(IdobataService.this).setSmallIcon(R.drawable.ic_stat_notification)
+                                                                  .setContentTitle(title)
                                                                   .setContentText(text)
                                                                   .setAutoCancel(true)
                                                                   .setContentIntent(pi)
