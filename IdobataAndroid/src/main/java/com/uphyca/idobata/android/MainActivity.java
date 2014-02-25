@@ -79,7 +79,13 @@ public class MainActivity extends ActionBarActivity {
             public void onPageFinished(WebView view, String url) {
                 setSupportProgressBarIndeterminateVisibility(false);
                 startService(new Intent(MainActivity.this, IdobataService.class));
-                mWebView.loadUrl("javascript:document.getElementsByClassName('image-upload-field')[0].addEventListener('click', function(){$Idobata.uploadFile()}, false);");
+
+                mWebView.loadUrl(new StringBuilder().append("javascript:")
+                                                    .append("(function(){")
+                                                    .append("var $=Array.prototype.pop.call(document.getElementsByClassName('image-upload-field'));")
+                                                    .append("if($ && !$.$weaved){$.addEventListener('click', function(){$Idobata.uploadFile()}, false);$.$weaved=1;}")
+                                                    .append("})();")
+                                                    .toString());
             }
         });
 
@@ -136,7 +142,7 @@ public class MainActivity extends ActionBarActivity {
             Uri uri = null;
             if (resultData != null) {
                 uri = resultData.getData();
-                Toast.makeText(this, "NOT IMPLEMENTED; " + uri, Toast.LENGTH_SHORT)
+                Toast.makeText(this, "NOT IMPLEMENTED; " + uri + "\n" + mWebView.getUrl(), Toast.LENGTH_SHORT)
                      .show();
             }
         }
@@ -150,7 +156,10 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private class IdobataInterface {
+
         @JavascriptInterface
+        @SuppressWarnings("unused")
+        //Used by WebView.addJavascriptInterface()
         public void uploadFile() {
             performFileSearch();
         }
