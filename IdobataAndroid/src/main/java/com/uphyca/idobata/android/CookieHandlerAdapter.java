@@ -32,6 +32,7 @@ import java.util.Map;
 class CookieHandlerAdapter extends CookieHandler {
 
     private static final String COOKIE = "Cookie";
+    private static final String SET_COOKIE = "Set-Cookie";
 
     private final CookieManager mCookieManager;
 
@@ -52,11 +53,11 @@ class CookieHandlerAdapter extends CookieHandler {
 
     @Override
     public void put(URI uri, Map<String, List<String>> responseHeaders) throws IOException {
-        if (!responseHeaders.containsKey(COOKIE)) {
+        List<String> cookie = responseHeaders.get(SET_COOKIE);
+        if (cookie == null) {
             return;
         }
-        List<String> cookies = responseHeaders.get(COOKIE);
-        for (String each : cookies) {
+        for (String each : cookie) {
             mCookieManager.setCookie(uri.toString(), each);
         }
     }
