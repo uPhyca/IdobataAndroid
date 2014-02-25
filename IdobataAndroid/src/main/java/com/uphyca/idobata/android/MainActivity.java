@@ -17,6 +17,7 @@
 package com.uphyca.idobata.android;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -55,7 +56,14 @@ public class MainActivity extends ActionBarActivity {
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                return false;
+                Uri uri = Uri.parse(url);
+                if (uri.getHost()
+                       .equals("idobata.io")) {
+                    view.loadUrl(url);
+                    return true;
+                }
+                startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                return true;
             }
 
             @Override
@@ -63,6 +71,7 @@ public class MainActivity extends ActionBarActivity {
                 startService(new Intent(MainActivity.this, IdobataService.class));
             }
         });
+
         setContentView(mWebView);
         mWebView.loadUrl("https://idobata.io/");
     }
