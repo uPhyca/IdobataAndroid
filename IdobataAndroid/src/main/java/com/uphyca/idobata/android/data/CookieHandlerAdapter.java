@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.uphyca.idobata.android;
+package com.uphyca.idobata.android.data;
 
 import android.webkit.CookieManager;
 
@@ -29,14 +29,14 @@ import java.util.Map;
 /**
  * @author Sosuke Masui (masui@uphyca.com)
  */
-class CookieHandlerAdapter extends CookieHandler {
+public class CookieHandlerAdapter extends CookieHandler {
 
     private static final String COOKIE = "Cookie";
     private static final String SET_COOKIE = "Set-Cookie";
 
     private final CookieManager mCookieManager;
 
-    CookieHandlerAdapter() {
+    public CookieHandlerAdapter() {
         mCookieManager = CookieManager.getInstance();
     }
 

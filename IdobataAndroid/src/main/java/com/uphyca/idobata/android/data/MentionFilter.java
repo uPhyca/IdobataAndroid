@@ -1,6 +1,7 @@
 
-package com.uphyca.idobata.android;
+package com.uphyca.idobata.android.data;
 
+import com.uphyca.idobata.android.data.api.MessageFilter;
 import com.uphyca.idobata.event.MessageCreatedEvent;
 import com.uphyca.idobata.model.User;
 

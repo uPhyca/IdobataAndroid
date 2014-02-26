@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.uphyca.idobata.android;
+package com.uphyca.idobata.android.ui;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -29,6 +29,11 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import com.uphyca.idobata.android.service.FileUploadService;
+import com.uphyca.idobata.android.service.IdobataService;
+import com.uphyca.idobata.android.InjectionUtils;
+import com.uphyca.idobata.android.R;
 
 /**
  * @author Sosuke Masui (masui@uphyca.com)

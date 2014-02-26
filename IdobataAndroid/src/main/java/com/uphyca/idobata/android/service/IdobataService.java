@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.uphyca.idobata.android;
+package com.uphyca.idobata.android.service;
 
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -36,6 +36,12 @@ import com.uphyca.idobata.ErrorListener;
 import com.uphyca.idobata.Idobata;
 import com.uphyca.idobata.IdobataError;
 import com.uphyca.idobata.IdobataStream;
+import com.uphyca.idobata.android.InjectionUtils;
+import com.uphyca.idobata.android.R;
+import com.uphyca.idobata.android.data.api.MessageFilter;
+import com.uphyca.idobata.android.data.api.PollingInterval;
+import com.uphyca.idobata.android.data.prefs.LongPreference;
+import com.uphyca.idobata.android.ui.MainActivity;
 import com.uphyca.idobata.event.ConnectionEvent;
 import com.uphyca.idobata.event.MessageCreatedEvent;
 import com.uphyca.idobata.model.User;
@@ -169,7 +175,9 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
 
     private CharSequence buildTitle(MessageCreatedEvent event) {
         return new StringBuilder().append(event.getOrganizationSlug())
+                                  .append(' ')
                                   .append('/')
+                                  .append(' ')
                                   .append(event.getRoomName());
     }
 
@@ -198,8 +206,10 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
         return new NotificationCompat.Builder(IdobataService.this).setSmallIcon(R.drawable.ic_stat_notification)
                                                                   .setContentTitle(title)
                                                                   .setContentText(text)
+                                                                  .setTicker(title)
                                                                   .setAutoCancel(true)
                                                                   .setContentIntent(pi)
+                                                                  .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS)
                                                                   .build();
     }
 

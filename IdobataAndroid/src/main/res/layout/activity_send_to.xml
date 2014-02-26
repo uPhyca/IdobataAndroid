@@ -9,7 +9,7 @@
 
     <fragment
         android:id="@+id/fragment_rooms"
-        android:name="com.uphyca.idobata.android.SendTo$Rooms"
+        android:name="com.uphyca.idobata.android.ui.SendTo$Rooms"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </FrameLayout>

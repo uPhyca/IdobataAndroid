@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.uphyca.idobata.android;
+package com.uphyca.idobata.android.data;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.uphyca.idobata.http.Request;

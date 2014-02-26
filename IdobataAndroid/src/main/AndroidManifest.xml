@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:hardwareAccelerated="true"
@@ -13,7 +14,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.uphyca.idobata.android.MainActivity"
+            android:name=".ui.MainActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,23 +24,23 @@
         </activity>
 
         <activity
-            android:name=".SendTo"
+            android:name=".ui.SendTo"
             android:theme="@android:style/Theme.Holo.Light.Dialog">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
-<!--
-                <data android:mimeType="image/*" />
--->
+                <!--
+                                <data android:mimeType="image/*" />
+                -->
                 <data android:mimeType="text/*" />
             </intent-filter>
         </activity>
 
-        <service android:name=".IdobataService" />
+        <service android:name=".service.IdobataService" />
 
-        <service android:name=".FileUploadService" />
+        <service android:name=".service.FileUploadService" />
 
-        <receiver android:name=".ConnectivityListener">
+        <receiver android:name=".receiver.ConnectivityListener">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>

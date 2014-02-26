@@ -1,5 +1,5 @@
 
-package com.uphyca.idobata.android;
+package com.uphyca.idobata.android.ui;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -12,6 +12,11 @@ import android.widget.ListView;
 
 import com.uphyca.idobata.Idobata;
 import com.uphyca.idobata.IdobataError;
+import com.uphyca.idobata.android.InjectionUtils;
+import com.uphyca.idobata.android.R;
+import com.uphyca.idobata.android.data.api.Http;
+import com.uphyca.idobata.android.data.api.Ui;
+import com.uphyca.idobata.android.ui.MainActivity;
 import com.uphyca.idobata.model.Organization;
 import com.uphyca.idobata.model.Records;
 import com.uphyca.idobata.model.Room;
@@ -118,8 +123,8 @@ public class SendTo extends FragmentActivity {
         }
 
         private void handleText(long id) throws IdobataError {
-            mIdobata.postMessage(id, getActivity().getIntent()
-                                                  .getStringExtra(Intent.EXTRA_TEXT));
+            Intent intent = getActivity().getIntent();
+            mIdobata.postMessage(id, intent.getStringExtra(Intent.EXTRA_TEXT));
         }
 
         private Organization findOrganizationById(long id, List<Organization> organizations) {

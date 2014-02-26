@@ -1,5 +1,5 @@
 
-package com.uphyca.idobata.android;
+package com.uphyca.idobata.android.data.prefs;
 
 import android.content.SharedPreferences;
 

@@ -1,5 +1,5 @@
 
-package com.uphyca.idobata.android;
+package com.uphyca.idobata.android.data;
 
 import android.os.Handler;
 import android.os.Looper;

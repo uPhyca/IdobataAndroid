@@ -1,5 +1,5 @@
 
-package com.uphyca.idobata.android;
+package com.uphyca.idobata.android.service;
 
 import android.app.IntentService;
 import android.content.Context;
@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import com.uphyca.idobata.Idobata;
 import com.uphyca.idobata.IdobataError;
+import com.uphyca.idobata.android.InjectionUtils;
 
 import javax.inject.Inject;
 import java.io.FileNotFoundException;

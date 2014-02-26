@@ -22,7 +22,7 @@ import dagger.ObjectGraph;
 /**
  * @author Sosuke Masui (masui@uphyca.com)
  */
-abstract class InjectionUtils {
+public abstract class InjectionUtils {
 
     private InjectionUtils() {
     }

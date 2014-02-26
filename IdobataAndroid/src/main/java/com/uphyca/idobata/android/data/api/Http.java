@@ -1,5 +1,5 @@
 
-package com.uphyca.idobata.android;
+package com.uphyca.idobata.android.data.api;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

@@ -1,11 +1,13 @@
 
-package com.uphyca.idobata.android;
+package com.uphyca.idobata.android.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+
+import com.uphyca.idobata.android.service.IdobataService;
 
 public class ConnectivityListener extends BroadcastReceiver {
 
