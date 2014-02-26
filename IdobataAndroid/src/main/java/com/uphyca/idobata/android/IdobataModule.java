@@ -21,18 +21,20 @@ import android.app.Application;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
+
 import com.squareup.okhttp.OkHttpClient;
-import com.uphyca.idobata.AuthenticityTokenHandler;
 import com.uphyca.idobata.CookieAuthenticator;
 import com.uphyca.idobata.Idobata;
 import com.uphyca.idobata.IdobataBuilder;
 import com.uphyca.idobata.RequestInterceptor;
 import com.uphyca.idobata.http.Client;
-import dagger.Module;
-import dagger.Provides;
+
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Singleton;
-import java.util.concurrent.TimeUnit;
+
+import dagger.Module;
+import dagger.Provides;
 
 /**
  * @author Sosuke Masui (masui@uphyca.com)
@@ -71,8 +73,8 @@ public class IdobataModule {
 
     @Provides
     @Singleton
-    RequestInterceptor provideRequestInterceptor(AuthenticityTokenHandler authenticityTokenHandler) {
-        return new CookieAuthenticator(new CookieHandlerAdapter(), authenticityTokenHandler);
+    RequestInterceptor provideRequestInterceptor() {
+        return new CookieAuthenticator(new CookieHandlerAdapter());
     }
 
     @Provides
@@ -104,18 +106,5 @@ public class IdobataModule {
     @Singleton
     MessageFilter provideMentionFilter() {
         return new MentionFilter();
-    }
-
-    @Provides
-    @Singleton
-    @AuthenticityToken
-    StringPreference provideAuthenticityTokenPreference(SharedPreferences pref) {
-        return new StringPreference(pref, "authenticity_token");
-    }
-
-    @Provides
-    @Singleton
-    AuthenticityTokenHandler provideAuthenticityTokenHandler(@AuthenticityToken StringPreference authenticityTokenPref) {
-        return new AuthenticityTokenManager(authenticityTokenPref);
     }
 }

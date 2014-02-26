@@ -31,6 +31,7 @@ import android.os.Message;
 import android.os.Process;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
+
 import com.uphyca.idobata.ErrorListener;
 import com.uphyca.idobata.Idobata;
 import com.uphyca.idobata.IdobataError;
@@ -39,9 +40,10 @@ import com.uphyca.idobata.event.ConnectionEvent;
 import com.uphyca.idobata.event.MessageCreatedEvent;
 import com.uphyca.idobata.model.User;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Set;
+
+import javax.inject.Inject;
 
 /**
  * @author Sosuke Masui (masui@uphyca.com)
@@ -75,8 +77,6 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
 
     private IdobataStream mStream;
 
-    //private User mUser;
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -87,13 +87,14 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        PendingIntent pi = buildPendingStartServiceIntent();
+        mAlarmManager.cancel(pi);
         mServiceHandler.sendEmptyMessage(OPEN);
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
-        mNotificationManager.cancelAll();
         closeQuietly();
         super.onDestroy();
     }
@@ -105,7 +106,6 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
 
     @Override
     public void closed(ConnectionEvent event) {
-        mStream.open();
     }
 
     @Override
@@ -134,6 +134,7 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
             mStream.setConnectionListener(null)
                    .setErrorListener(null)
                    .close();
+            mStream = null;
         } catch (IOException ignore) {
         }
     }

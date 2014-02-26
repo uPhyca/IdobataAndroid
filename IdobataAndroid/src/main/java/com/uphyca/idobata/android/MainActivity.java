@@ -29,9 +29,6 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import com.uphyca.idobata.AuthenticityTokenHandler;
-
-import javax.inject.Inject;
 
 /**
  * @author Sosuke Masui (masui@uphyca.com)
@@ -40,9 +37,12 @@ public class MainActivity extends ActionBarActivity {
 
     private static final int READ_REQUEST_CODE = 42;
 
-    @Inject
-    AuthenticityTokenHandler mAuthenticityTokenHandler;
-
+    private static final String IMAGE_UPLOAD_INSTRUMENT = new StringBuilder().append("javascript:")
+                                                                             .append("(function(){")
+                                                                             .append("var $=Array.prototype.pop.call(document.getElementsByClassName('image-upload-field'));")
+                                                                             .append("if($ && !$.$weaved){$.addEventListener('click', function(){$IdobataInterface.uploadFile()}, false);$.$weaved=1;};")
+                                                                             .append("})();")
+                                                                             .toString();
     private WebView mWebView;
 
     @Override
@@ -85,18 +85,10 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 setSupportProgressBarIndeterminateVisibility(false);
-                startService(new Intent(MainActivity.this, IdobataService.class));
-                mWebView.loadUrl(new StringBuilder().append("javascript:")
-                                                    .append("(function(){")
-                                                    .append("var $=Array.prototype.pop.call(document.getElementsByClassName('image-upload-field'));")
-                                                    .append("if($ && !$.$weaved){$.addEventListener('click', function(){$IdobataInterface.uploadFile()}, false);$.$weaved=1;}")
-                                                    .append("})();")
-                                                    .toString());
-                mWebView.loadUrl(new StringBuilder().append("javascript:")
-                                                    .append("(function(){")
-                                                    .append("Array.prototype.forEach.call(document.getElementsByTagName(\"meta\"), function(meta){if(/csrf-token/.test(meta.name))$IdobataInterface.setAuthenticityToken(meta.content)});")
-                                                    .append("})();")
-                                                    .toString());
+                if (url.startsWith("https://idobata.io/#/")) {
+                    mWebView.loadUrl(IMAGE_UPLOAD_INSTRUMENT);
+                    startService(new Intent(MainActivity.this, IdobataService.class));
+                }
             }
         });
 
@@ -153,9 +145,8 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
         if (requestCode == READ_REQUEST_CODE && resultCode == RESULT_OK) {
-            Uri uri = null;
             if (resultData != null) {
-                uri = resultData.getData();
+                Uri uri = resultData.getData();
                 FileUploadService.uploadFile(this, Uri.parse(mWebView.getUrl()), uri);
             }
         }
@@ -174,13 +165,6 @@ public class MainActivity extends ActionBarActivity {
         //Used by WebView.addJavascriptInterface()
         public void uploadFile() {
             performFileSearch();
-        }
-
-        @JavascriptInterface
-        @SuppressWarnings("unused")
-        //Used by WebView.addJavascriptInterface()
-        public void setAuthenticityToken(String authenticityToken) {
-            mAuthenticityTokenHandler.set(authenticityToken);
         }
     }
 }
