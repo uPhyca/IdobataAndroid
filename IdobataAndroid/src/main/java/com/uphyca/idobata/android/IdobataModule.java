@@ -22,6 +22,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.squareup.okhttp.HttpResponseCache;
 import com.squareup.okhttp.OkHttpClient;
 import com.uphyca.idobata.CookieAuthenticator;
 import com.uphyca.idobata.Idobata;
@@ -29,6 +30,10 @@ import com.uphyca.idobata.IdobataBuilder;
 import com.uphyca.idobata.RequestInterceptor;
 import com.uphyca.idobata.http.Client;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Singleton;
@@ -40,7 +45,7 @@ import dagger.Provides;
  * @author Sosuke Masui (masui@uphyca.com)
  */
 @Module(injects = {
-        IdobataService.class, FileUploadService.class, MainActivity.class
+        IdobataService.class, FileUploadService.class, MainActivity.class, SendTo.Rooms.class
 })
 public class IdobataModule {
 
@@ -54,7 +59,16 @@ public class IdobataModule {
     @Provides
     @Singleton
     OkHttpClient provideOkHttpClient() {
-        return new OkHttpClient();
+        OkHttpClient okHttpClient = new OkHttpClient();
+        File cacheDir = new File(mApplication.getCacheDir(), "okhttp");
+        final HttpResponseCache cache;
+        try {
+            cache = new HttpResponseCache(cacheDir, 10 * 1024 * 1024);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+        okHttpClient.setResponseCache(cache);
+        return okHttpClient;
     }
 
     @Provides
@@ -106,5 +120,19 @@ public class IdobataModule {
     @Singleton
     MessageFilter provideMentionFilter() {
         return new MentionFilter();
+    }
+
+    @Provides
+    @Singleton
+    @Http
+    Executor provideHttpExecutor() {
+        return Executors.newCachedThreadPool();
+    }
+
+    @Provides
+    @Singleton
+    @Ui
+    Executor provideUiExecutor() {
+        return new AndroidExecutor();
     }
 }

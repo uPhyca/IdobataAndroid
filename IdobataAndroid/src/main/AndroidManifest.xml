@@ -1,34 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.uphyca.idobata.android">
+    package="com.uphyca.idobata.android">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-            android:hardwareAccelerated="true"
-            android:name=".IdobataApplication"
-            android:allowBackup="true"
-            android:icon="@drawable/ic_launcher"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme">
+        android:hardwareAccelerated="true"
+        android:name=".IdobataApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
         <activity
-                android:name="com.uphyca.idobata.android.MainActivity"
-                android:label="@string/app_name">
+            android:name="com.uphyca.idobata.android.MainActivity"
+            android:label="@string/app_name">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <service android:name=".IdobataService"/>
+        <activity
+            android:name=".SendTo"
+            android:theme="@android:style/Theme.Holo.Light.Dialog">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+<!--
+                <data android:mimeType="image/*" />
+-->
+                <data android:mimeType="text/*" />
+            </intent-filter>
+        </activity>
 
-        <service android:name=".FileUploadService"/>
+        <service android:name=".IdobataService" />
+
+        <service android:name=".FileUploadService" />
 
         <receiver android:name=".ConnectivityListener">
             <intent-filter>
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>
         </receiver>
 
