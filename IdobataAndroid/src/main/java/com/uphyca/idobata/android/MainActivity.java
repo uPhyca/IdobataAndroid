@@ -29,7 +29,9 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
+import com.uphyca.idobata.AuthenticityTokenHandler;
+
+import javax.inject.Inject;
 
 /**
  * @author Sosuke Masui (masui@uphyca.com)
@@ -38,11 +40,16 @@ public class MainActivity extends ActionBarActivity {
 
     private static final int READ_REQUEST_CODE = 42;
 
+    @Inject
+    AuthenticityTokenHandler mAuthenticityTokenHandler;
+
     private WebView mWebView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        InjectionUtils.getObjectGraph(this)
+                      .inject(this);
         supportRequestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         mWebView = new WebView(this);
         WebSettings settings = mWebView.getSettings();
@@ -55,7 +62,7 @@ public class MainActivity extends ActionBarActivity {
         settings.setDatabaseEnabled(true);
         settings.setDomStorageEnabled(true);
 
-        mWebView.addJavascriptInterface(new IdobataInterface(), "$Idobata");
+        mWebView.addJavascriptInterface(new IdobataInterface(), "$IdobataInterface");
 
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
@@ -79,11 +86,15 @@ public class MainActivity extends ActionBarActivity {
             public void onPageFinished(WebView view, String url) {
                 setSupportProgressBarIndeterminateVisibility(false);
                 startService(new Intent(MainActivity.this, IdobataService.class));
-
                 mWebView.loadUrl(new StringBuilder().append("javascript:")
                                                     .append("(function(){")
                                                     .append("var $=Array.prototype.pop.call(document.getElementsByClassName('image-upload-field'));")
-                                                    .append("if($ && !$.$weaved){$.addEventListener('click', function(){$Idobata.uploadFile()}, false);$.$weaved=1;}")
+                                                    .append("if($ && !$.$weaved){$.addEventListener('click', function(){$IdobataInterface.uploadFile()}, false);$.$weaved=1;}")
+                                                    .append("})();")
+                                                    .toString());
+                mWebView.loadUrl(new StringBuilder().append("javascript:")
+                                                    .append("(function(){")
+                                                    .append("Array.prototype.forEach.call(document.getElementsByTagName(\"meta\"), function(meta){if(/csrf-token/.test(meta.name))$IdobataInterface.setAuthenticityToken(meta.content)});")
                                                     .append("})();")
                                                     .toString());
             }
@@ -145,15 +156,13 @@ public class MainActivity extends ActionBarActivity {
             Uri uri = null;
             if (resultData != null) {
                 uri = resultData.getData();
-                Toast.makeText(this, "NOT IMPLEMENTED; " + uri + "\n" + mWebView.getUrl(), Toast.LENGTH_SHORT)
-                     .show();
+                FileUploadService.uploadFile(this, Uri.parse(mWebView.getUrl()), uri);
             }
         }
     }
 
     private void performFileSearch() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
         startActivityForResult(intent, READ_REQUEST_CODE);
     }
@@ -165,6 +174,13 @@ public class MainActivity extends ActionBarActivity {
         //Used by WebView.addJavascriptInterface()
         public void uploadFile() {
             performFileSearch();
+        }
+
+        @JavascriptInterface
+        @SuppressWarnings("unused")
+        //Used by WebView.addJavascriptInterface()
+        public void setAuthenticityToken(String authenticityToken) {
+            mAuthenticityTokenHandler.set(authenticityToken);
         }
     }
 }

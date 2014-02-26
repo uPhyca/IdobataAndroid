@@ -24,6 +24,8 @@
 
         <service android:name=".IdobataService"/>
 
+        <service android:name=".FileUploadService"/>
+
         <receiver android:name=".ConnectivityListener">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
