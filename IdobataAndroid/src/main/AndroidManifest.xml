@@ -3,6 +3,7 @@
           package="com.uphyca.idobata.android">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
             android:hardwareAccelerated="true"
@@ -22,6 +23,13 @@
         </activity>
 
         <service android:name=".IdobataService"/>
+
+        <receiver android:name=".ConnectivityListener">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

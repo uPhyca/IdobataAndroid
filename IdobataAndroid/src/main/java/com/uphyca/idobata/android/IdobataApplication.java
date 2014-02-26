@@ -39,7 +39,7 @@ public class IdobataApplication extends Application {
 
     Object[] modules() {
         return new Object[] {
-            new IdobataModule()
+            new IdobataModule(IdobataApplication.this)
         };
     }
 

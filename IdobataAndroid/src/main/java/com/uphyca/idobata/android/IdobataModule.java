@@ -16,6 +16,11 @@
 
 package com.uphyca.idobata.android;
 
+import android.app.AlarmManager;
+import android.app.Application;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.content.SharedPreferences;
 import com.squareup.okhttp.OkHttpClient;
 import com.uphyca.idobata.CookieAuthenticator;
 import com.uphyca.idobata.Idobata;
@@ -26,12 +31,22 @@ import dagger.Module;
 import dagger.Provides;
 
 import javax.inject.Singleton;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Sosuke Masui (masui@uphyca.com)
  */
-@Module(injects = IdobataService.class)
+@Module(injects = {
+    IdobataService.class
+})
 public class IdobataModule {
+
+    private final Application mApplication;
+    private static final long DEFAULT_POLLING_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(5);
+
+    public IdobataModule(Application application) {
+        mApplication = application;
+    }
 
     @Provides
     @Singleton
@@ -57,5 +72,36 @@ public class IdobataModule {
     @Singleton
     RequestInterceptor provideRequestInterceptor() {
         return new CookieAuthenticator(new CookieHandlerAdapter());
+    }
+
+    @Provides
+    @Singleton
+    NotificationManager provideNotificationManager() {
+        return (NotificationManager) mApplication.getSystemService(Context.NOTIFICATION_SERVICE);
+    }
+
+    @Provides
+    @Singleton
+    AlarmManager provideAlarmManager() {
+        return (AlarmManager) mApplication.getSystemService(Context.ALARM_SERVICE);
+    }
+
+    @Provides
+    @Singleton
+    SharedPreferences provideSharedPreferences() {
+        return mApplication.getSharedPreferences("pref", Context.MODE_PRIVATE);
+    }
+
+    @Provides
+    @Singleton
+    @PollingInterval
+    LongPreference providePollingIntervalPreference(SharedPreferences pref) {
+        return new LongPreference(pref, "polling_interval", DEFAULT_POLLING_INTERVAL_MILLIS);
+    }
+
+    @Provides(type = Provides.Type.SET)
+    @Singleton
+    MessageFilter provideMentionFilter() {
+        return new MentionFilter();
     }
 }

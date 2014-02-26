@@ -16,95 +16,154 @@
 
 package com.uphyca.idobata.android;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
+import android.os.Process;
+import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
-
+import com.uphyca.idobata.ErrorListener;
 import com.uphyca.idobata.Idobata;
 import com.uphyca.idobata.IdobataError;
 import com.uphyca.idobata.IdobataStream;
+import com.uphyca.idobata.event.ConnectionEvent;
 import com.uphyca.idobata.event.MessageCreatedEvent;
-import com.uphyca.idobata.model.Seed;
 import com.uphyca.idobata.model.User;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
+import java.io.IOException;
+import java.util.Set;
 
 /**
  * @author Sosuke Masui (masui@uphyca.com)
  */
-public class IdobataService extends Service {
+public class IdobataService extends Service implements IdobataStream.Listener<MessageCreatedEvent>, IdobataStream.ConnectionListener, ErrorListener {
+
+    private static final String TAG = "Idobata";
+    private static final int OPEN = 0;
 
     @Inject
     Idobata mIdobata;
 
+    @Inject
+    AlarmManager mAlarmManager;
+
+    @Inject
+    NotificationManager mNotificationManager;
+
+    @Inject
+    Set<MessageFilter> mMessageFilters;
+
+    @Inject
+    @PollingInterval
+    LongPreference mPollingIntervalPref;
+
+    private Looper mServiceLooper;
+
+    private ServiceHandler mServiceHandler;
+
+    private User mUser;
+
     private IdobataStream mStream;
-    private Seed mSeed;
+
+    //private User mUser;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        ensureHandler();
         InjectionUtils.getObjectGraph(this)
                       .inject(this);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        subscribe();
+        mServiceHandler.sendEmptyMessage(OPEN);
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
-        if (mStream != null) {
-            try {
-                mStream.close();
-            } catch (IOException ignore) {
-            }
-        }
+        mNotificationManager.cancelAll();
+        closeQuietly();
         super.onDestroy();
-    }
-
-    private void subscribe() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mSeed = mIdobata.getSeed();
-                    open();
-                } catch (IdobataError idobataError) {
-                    idobataError.printStackTrace();
-                    stopSelf();
-                }
-            }
-        }).start();
-    }
-
-    private void open() throws IdobataError {
-        IdobataStream.Listener<MessageCreatedEvent> notifier = new IdobataStream.Listener<MessageCreatedEvent>() {
-            @Override
-            public void onEvent(MessageCreatedEvent event) {
-                PendingIntent pi = buildPendingIntent();
-                CharSequence title = buildTitle(event);
-                CharSequence text = buildText(event);
-                Notification notification = buildNotification(pi, title, text);
-                NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                notificationManager.notify(R.string.app_name, notification);
-            }
-        };
-        mStream = mIdobata.openStream()
-                          .subscribeMessageCreated(new MentionFilter(mSeed.getRecords()
-                                                                          .getUser(), notifier));
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    @Override
+    public void closed(ConnectionEvent event) {
+        mStream.open();
+    }
+
+    @Override
+    public void opened(ConnectionEvent event) {
+    }
+
+    @Override
+    public void onError(IdobataError error) {
+    }
+
+    @Override
+    public void onEvent(MessageCreatedEvent event) {
+        for (MessageFilter each : mMessageFilters) {
+            if (each.isSubscribed(mUser, event)) {
+                notifyEvent(event);
+                return;
+            }
+        }
+    }
+
+    private void closeQuietly() {
+        if (mStream == null) {
+            return;
+        }
+        try {
+            mStream.setConnectionListener(null)
+                   .setErrorListener(null)
+                   .close();
+        } catch (IOException ignore) {
+        }
+    }
+
+    private void executeNext() {
+        long currentTime = SystemClock.elapsedRealtime();
+        PendingIntent pi = buildPendingStartServiceIntent();
+        mAlarmManager.set(AlarmManager.ELAPSED_REALTIME, currentTime + mPollingIntervalPref.get(), pi);
+    }
+
+    private void ensureHandler() {
+        HandlerThread t = new HandlerThread("IdobataService", Process.THREAD_PRIORITY_BACKGROUND);
+        t.start();
+        mServiceLooper = t.getLooper();
+        mServiceHandler = new ServiceHandler(mServiceLooper);
+    }
+
+    private void open() throws IdobataError {
+        if (mUser == null) {
+            mUser = mIdobata.getSeed()
+                            .getRecords()
+                            .getUser();
+        }
+        if (mStream == null) {
+            mStream = mIdobata.openStream()
+                              .setErrorListener(this)
+                              .setConnectionListener(this)
+                              .subscribeMessageCreated(this);
+        }
+        mStream.open();
     }
 
     private CharSequence buildTitle(MessageCreatedEvent event) {
@@ -121,10 +180,16 @@ public class IdobataService extends Service {
                                   .toString();
     }
 
-    private PendingIntent buildPendingIntent() {
+    private PendingIntent buildPendingStartServiceIntent() {
+        final Intent intent = new Intent(IdobataService.this, IdobataService.class);
+        return PendingIntent.getService(IdobataService.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private PendingIntent buildPendingStartActivityIntent(MessageCreatedEvent event) {
         final Intent intent = new Intent(IdobataService.this, MainActivity.class);
         intent.setAction(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
+        intent.setData(Uri.parse(String.format("https://idobata.io/#/organization/%s/room/%s", event.getOrganizationSlug(), event.getRoomName())));
         return PendingIntent.getActivity(IdobataService.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
@@ -137,23 +202,29 @@ public class IdobataService extends Service {
                                                                   .build();
     }
 
-    private static class MentionFilter implements IdobataStream.Listener<MessageCreatedEvent> {
+    private void notifyEvent(MessageCreatedEvent event) {
+        PendingIntent pi = buildPendingStartActivityIntent(event);
+        CharSequence title = buildTitle(event);
+        CharSequence text = buildText(event);
+        Notification notification = buildNotification(pi, title, text);
+        mNotificationManager.notify(R.string.app_name, notification);
+    }
 
-        private final User mUser;
-        private final IdobataStream.Listener<MessageCreatedEvent> mDelegate;
+    private final class ServiceHandler extends Handler {
 
-        private MentionFilter(User user, IdobataStream.Listener<MessageCreatedEvent> delegate) {
-            mUser = user;
-            mDelegate = delegate;
+        private ServiceHandler(Looper looper) {
+            super(looper);
         }
 
         @Override
-        public void onEvent(MessageCreatedEvent event) {
-            if (!event.getMentions()
-                      .contains(mUser.getId())) {
-                return;
+        public void handleMessage(Message msg) {
+            try {
+                open();
+            } catch (IdobataError idobataError) {
+                onError(idobataError);
+            } finally {
+                executeNext();
             }
-            mDelegate.onEvent(event);
         }
     }
 }

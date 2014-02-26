@@ -90,7 +90,10 @@ public class MainActivity extends ActionBarActivity {
         });
 
         setContentView(mWebView);
-        mWebView.loadUrl("https://idobata.io/");
+
+        Uri data = getIntent().getData();
+        String url = data == null ? "https://idobata.io/" : data.toString();
+        mWebView.loadUrl(url);
     }
 
     @Override
@@ -103,7 +106,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onPause() {
         CookieSyncManager.getInstance()
-                         .sync();
+                         .startSync();
         super.onPause();
     }
 
@@ -155,7 +158,7 @@ public class MainActivity extends ActionBarActivity {
         startActivityForResult(intent, READ_REQUEST_CODE);
     }
 
-    private class IdobataInterface {
+    public class IdobataInterface {
 
         @JavascriptInterface
         @SuppressWarnings("unused")
