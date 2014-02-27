@@ -16,7 +16,6 @@ import com.uphyca.idobata.android.InjectionUtils;
 import com.uphyca.idobata.android.R;
 import com.uphyca.idobata.android.data.api.Http;
 import com.uphyca.idobata.android.data.api.Ui;
-import com.uphyca.idobata.android.ui.MainActivity;
 import com.uphyca.idobata.model.Organization;
 import com.uphyca.idobata.model.Records;
 import com.uphyca.idobata.model.Room;
@@ -27,6 +26,8 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import javax.inject.Inject;
+
+import static com.uphyca.idobata.android.data.IdobataUtils.findOrganizationById;
 
 public class SendTo extends FragmentActivity {
 
@@ -125,15 +126,6 @@ public class SendTo extends FragmentActivity {
         private void handleText(long id) throws IdobataError {
             Intent intent = getActivity().getIntent();
             mIdobata.postMessage(id, intent.getStringExtra(Intent.EXTRA_TEXT));
-        }
-
-        private Organization findOrganizationById(long id, List<Organization> organizations) {
-            for (Organization org : organizations) {
-                if (org.getId() == id) {
-                    return org;
-                }
-            }
-            return null;
         }
 
         private CharSequence buildItem(Room room, Organization org) {

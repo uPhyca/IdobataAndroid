@@ -27,7 +27,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.Message;
 import android.os.Process;
 import android.support.v4.app.NotificationCompat;
 
@@ -46,13 +45,24 @@ import com.uphyca.idobata.android.data.prefs.LongPreference;
 import com.uphyca.idobata.android.ui.MainActivity;
 import com.uphyca.idobata.event.ConnectionEvent;
 import com.uphyca.idobata.event.MessageCreatedEvent;
+import com.uphyca.idobata.model.Message;
+import com.uphyca.idobata.model.MessageBean;
+import com.uphyca.idobata.model.Organization;
+import com.uphyca.idobata.model.Records;
+import com.uphyca.idobata.model.Room;
+import com.uphyca.idobata.model.Seed;
 import com.uphyca.idobata.model.User;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
+
+import static com.uphyca.idobata.android.data.IdobataUtils.findOrganizationById;
+import static com.uphyca.idobata.android.data.IdobataUtils.findRoomById;
 
 /**
  * @author Sosuke Masui (masui@uphyca.com)
@@ -128,6 +138,11 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
     @Override
     public void opened(ConnectionEvent event) {
         mBackoffPolicy.reset();
+        try {
+            notifyUnreadMessages();
+        } catch (IdobataError idobataError) {
+            idobataError.printStackTrace();
+        }
     }
 
     @Override
@@ -143,9 +158,57 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
 
     @Override
     public void onEvent(MessageCreatedEvent event) {
+        Message message = eventToMessage(event);
+        filterAndNotifyMessage(message, event.getOrganizationSlug(), event.getRoomName());
+    }
+
+    private Message eventToMessage(MessageCreatedEvent event) {
+        Message message = new MessageBean();
+        message.setBody(event.getBody());
+        message.setRoomId(event.getRoomId());
+        message.setBodyPlain(event.getBodyPlain());
+        message.setSenderName(event.getSenderName());
+        message.setSenderId(event.getSenderId());
+        message.setMentions(event.getMentions());
+        message.setCreatedAt(event.getCreatedAt());
+        message.setId(event.getId());
+        message.setImageUrls(event.getImageUrls());
+        message.setMultiline(event.isMultiline());
+        message.setSenderIconUrl(event.getSenderIconUrl());
+        message.setSenderType(event.getSenderType());
+        return message;
+    }
+
+    private void notifyUnreadMessages() throws IdobataError {
+        List<String> unreadMessageIds = new ArrayList<String>();
+        Seed seed = mIdobata.getSeed();
+        Records records = seed.getRecords();
+        List<Room> rooms = records.getRooms();
+        List<Organization> organizations = records.getOrganizations();
+        for (Room room : rooms) {
+            unreadMessageIds.addAll(room.getUnreadMessageIds());
+        }
+
+        List<Message> unreadMessages = mIdobata.getMessages(unreadMessageIds);
+        for (Message message : unreadMessages) {
+
+            //bodyPlain is always null when getting message from /api/messages
+            message.setBodyPlain(stripTags(message.getBody()));
+
+            Room room = findRoomById(message.getRoomId(), rooms);
+            Organization organization = findOrganizationById(room.getOrganizationId(), organizations);
+            filterAndNotifyMessage(message, organization.getSlug(), room.getName());
+        }
+    }
+
+    private String stripTags(String s) {
+        return s.replaceAll("<(\"[^\"]*\"|'[^']*'|[^'\">])*>", "");
+    }
+
+    private void filterAndNotifyMessage(Message message, String organizationSlug, String roomName) {
         for (MessageFilter each : mMessageFilters) {
-            if (each.isSubscribed(mUser, event)) {
-                notifyEvent(event);
+            if (each.isSubscribed(mUser, message)) {
+                notifyMessage(message, organizationSlug, roomName);
                 return;
             }
         }
@@ -211,19 +274,19 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
         mStream.open();
     }
 
-    private CharSequence buildTitle(MessageCreatedEvent event) {
-        return new StringBuilder().append(event.getOrganizationSlug())
+    private CharSequence buildTitle(String organizationSlug, String roomName) {
+        return new StringBuilder().append(organizationSlug)
                                   .append(' ')
                                   .append('/')
                                   .append(' ')
-                                  .append(event.getRoomName());
+                                  .append(roomName);
     }
 
-    private CharSequence buildText(MessageCreatedEvent event) {
-        return new StringBuilder().append(event.getSenderName())
+    private CharSequence buildText(Message message) {
+        return new StringBuilder().append(message.getSenderName())
                                   .append(':')
                                   .append(' ')
-                                  .append(event.getBodyPlain())
+                                  .append(message.getBodyPlain())
                                   .toString();
     }
 
@@ -232,11 +295,12 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
         return PendingIntent.getService(IdobataService.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    private PendingIntent buildPendingStartActivityIntent(MessageCreatedEvent event) {
+    private PendingIntent buildPendingStartActivityIntent(Message message, String organizationSlug, String roomName) {
+
         final Intent intent = new Intent(IdobataService.this, MainActivity.class);
         intent.setAction(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        intent.setData(Uri.parse(String.format("https://idobata.io/#/organization/%s/room/%s", event.getOrganizationSlug(), event.getRoomName())));
+        intent.setData(Uri.parse(String.format("https://idobata.io/#/organization/%s/room/%s", organizationSlug, roomName)));
         return PendingIntent.getActivity(IdobataService.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
@@ -251,10 +315,10 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
                                                                   .build();
     }
 
-    private void notifyEvent(MessageCreatedEvent event) {
-        PendingIntent pi = buildPendingStartActivityIntent(event);
-        CharSequence title = buildTitle(event);
-        CharSequence text = buildText(event);
+    private void notifyMessage(Message message, String organizationSlug, String roomName) {
+        PendingIntent pi = buildPendingStartActivityIntent(message, organizationSlug, roomName);
+        CharSequence title = buildTitle(organizationSlug, roomName);
+        CharSequence text = buildText(message);
         Notification notification = buildNotification(pi, title, text);
         mNotificationManager.notify(R.string.app_name, notification);
     }
@@ -266,7 +330,7 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
         }
 
         @Override
-        public void handleMessage(Message msg) {
+        public void handleMessage(android.os.Message msg) {
             try {
                 open();
             } catch (IdobataError idobataError) {
