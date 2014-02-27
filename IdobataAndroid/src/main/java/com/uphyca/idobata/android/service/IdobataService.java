@@ -29,7 +29,6 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
-import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 
 import com.uphyca.idobata.ErrorListener;
@@ -38,8 +37,11 @@ import com.uphyca.idobata.IdobataError;
 import com.uphyca.idobata.IdobataStream;
 import com.uphyca.idobata.android.InjectionUtils;
 import com.uphyca.idobata.android.R;
+import com.uphyca.idobata.android.data.api.BackoffPolicy;
+import com.uphyca.idobata.android.data.api.Environment;
 import com.uphyca.idobata.android.data.api.MessageFilter;
 import com.uphyca.idobata.android.data.api.PollingInterval;
+import com.uphyca.idobata.android.data.api.StreamConnection;
 import com.uphyca.idobata.android.data.prefs.LongPreference;
 import com.uphyca.idobata.android.ui.MainActivity;
 import com.uphyca.idobata.event.ConnectionEvent;
@@ -48,6 +50,7 @@ import com.uphyca.idobata.model.User;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -56,8 +59,8 @@ import javax.inject.Inject;
  */
 public class IdobataService extends Service implements IdobataStream.Listener<MessageCreatedEvent>, IdobataStream.ConnectionListener, ErrorListener {
 
-    private static final String TAG = "Idobata";
     private static final int OPEN = 0;
+    private static final long DELAY_MILLIS_TO_RESTART = TimeUnit.SECONDS.toMillis(5);
 
     @Inject
     Idobata mIdobata;
@@ -74,6 +77,13 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
     @Inject
     @PollingInterval
     LongPreference mPollingIntervalPref;
+
+    @Inject
+    Environment mEnvironment;
+
+    @Inject
+    @StreamConnection
+    BackoffPolicy mBackoffPolicy;
 
     private Looper mServiceLooper;
 
@@ -93,14 +103,14 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        PendingIntent pi = buildPendingStartServiceIntent();
-        mAlarmManager.cancel(pi);
+        executeAt(mEnvironment.elapsedRealtime() + mPollingIntervalPref.get());
         mServiceHandler.sendEmptyMessage(OPEN);
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
+        cancelPolling();
         closeQuietly();
         super.onDestroy();
     }
@@ -112,14 +122,23 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
 
     @Override
     public void closed(ConnectionEvent event) {
+        retryToConnect();
     }
 
     @Override
     public void opened(ConnectionEvent event) {
+        mBackoffPolicy.reset();
     }
 
     @Override
     public void onError(IdobataError error) {
+        retryToConnect();
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        long cur = mEnvironment.elapsedRealtime();
+        executeAt(cur + DELAY_MILLIS_TO_RESTART);
     }
 
     @Override
@@ -129,6 +148,25 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
                 notifyEvent(event);
                 return;
             }
+        }
+    }
+
+    private void cancelPolling() {
+        PendingIntent pi = buildPendingStartServiceIntent();
+        mAlarmManager.cancel(pi);
+    }
+
+    private void retryToConnect() {
+        if (mBackoffPolicy.isFailed()) {
+            stopSelf();
+            return;
+        }
+
+        long nextBackOffMillis = mBackoffPolicy.getNextBackOffMillis();
+        try {
+            executeAt(nextBackOffMillis);
+        } finally {
+            mBackoffPolicy.backoff();
         }
     }
 
@@ -145,10 +183,10 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
         }
     }
 
-    private void executeNext() {
-        long currentTime = SystemClock.elapsedRealtime();
+    private void executeAt(long triggerAtMillis) {
         PendingIntent pi = buildPendingStartServiceIntent();
-        mAlarmManager.set(AlarmManager.ELAPSED_REALTIME, currentTime + mPollingIntervalPref.get(), pi);
+        mAlarmManager.cancel(pi);
+        mAlarmManager.set(AlarmManager.ELAPSED_REALTIME, triggerAtMillis, pi);
     }
 
     private void ensureHandler() {
@@ -233,8 +271,6 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
                 open();
             } catch (IdobataError idobataError) {
                 onError(idobataError);
-            } finally {
-                executeNext();
             }
         }
     }

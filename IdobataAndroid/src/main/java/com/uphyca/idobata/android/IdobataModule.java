@@ -28,15 +28,20 @@ import com.uphyca.idobata.CookieAuthenticator;
 import com.uphyca.idobata.Idobata;
 import com.uphyca.idobata.IdobataBuilder;
 import com.uphyca.idobata.RequestInterceptor;
+import com.uphyca.idobata.android.data.AndroidEnvironment;
 import com.uphyca.idobata.android.data.AndroidExecutor;
 import com.uphyca.idobata.android.data.CookieHandlerAdapter;
+import com.uphyca.idobata.android.data.ExponentialBackoff;
 import com.uphyca.idobata.android.data.MentionFilter;
 import com.uphyca.idobata.android.data.OkClient;
+import com.uphyca.idobata.android.data.api.BackoffPolicy;
+import com.uphyca.idobata.android.data.api.Environment;
 import com.uphyca.idobata.android.data.api.Http;
 import com.uphyca.idobata.android.data.api.MessageFilter;
-import com.uphyca.idobata.android.data.prefs.LongPreference;
 import com.uphyca.idobata.android.data.api.PollingInterval;
+import com.uphyca.idobata.android.data.api.StreamConnection;
 import com.uphyca.idobata.android.data.api.Ui;
+import com.uphyca.idobata.android.data.prefs.LongPreference;
 import com.uphyca.idobata.android.service.FileUploadService;
 import com.uphyca.idobata.android.service.IdobataService;
 import com.uphyca.idobata.android.ui.MainActivity;
@@ -64,6 +69,8 @@ public class IdobataModule {
 
     private final Application mApplication;
     private static final long DEFAULT_POLLING_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(5);
+    private static final long BACKOFF_SLEEP_MILLIS = TimeUnit.SECONDS.toMillis(5);
+    private static final int BACKOFF_TRIES = Integer.MAX_VALUE;
 
     public IdobataModule(Application application) {
         mApplication = application;
@@ -147,5 +154,18 @@ public class IdobataModule {
     @Ui
     Executor provideUiExecutor() {
         return new AndroidExecutor();
+    }
+
+    @Provides
+    @Singleton
+    Environment provideEnvironment() {
+        return new AndroidEnvironment();
+    }
+
+    @Provides
+    @Singleton
+    @StreamConnection
+    BackoffPolicy provideBackoffPolicy(Environment environment) {
+        return new ExponentialBackoff(environment, BACKOFF_SLEEP_MILLIS, BACKOFF_TRIES);
     }
 }
