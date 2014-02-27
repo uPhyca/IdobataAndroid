@@ -6,28 +6,30 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+
 import com.uphyca.idobata.Idobata;
 import com.uphyca.idobata.IdobataError;
 import com.uphyca.idobata.android.InjectionUtils;
 
-import javax.inject.Inject;
 import java.io.FileNotFoundException;
 
-public class FileUploadService extends IntentService {
+import javax.inject.Inject;
 
-    private static final String EXTRA_ROOM_ID = "room_id";
+public class PostImageService extends IntentService {
 
-    public static void uploadFile(Context context, Uri roomUri, Uri dataUri) {
-        Intent intent = new Intent(context, FileUploadService.class).setData(dataUri)
-                                                                    .putExtra(EXTRA_ROOM_ID, roomUri);
+    private static final String EXTRA_ROOM_URI = "room_uri";
+
+    public static void postImage(Context context, Uri roomUri, Uri dataUri) {
+        Intent intent = new Intent(context, PostImageService.class).setData(dataUri)
+                                                                   .putExtra(EXTRA_ROOM_URI, roomUri);
         context.startService(intent);
     }
 
     @Inject
     Idobata mIdobata;
 
-    public FileUploadService() {
-        super("FileUploadService");
+    public PostImageService() {
+        super("PostImageService");
     }
 
     @Override
@@ -39,7 +41,7 @@ public class FileUploadService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Uri roomUri = intent.getParcelableExtra(EXTRA_ROOM_ID);
+        Uri roomUri = intent.getParcelableExtra(EXTRA_ROOM_URI);
         Uri dataUri = intent.getData();
         String mimeType = null;
         try {

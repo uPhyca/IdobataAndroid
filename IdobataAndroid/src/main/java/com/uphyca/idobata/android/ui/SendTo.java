@@ -16,6 +16,8 @@ import com.uphyca.idobata.android.InjectionUtils;
 import com.uphyca.idobata.android.R;
 import com.uphyca.idobata.android.data.api.Http;
 import com.uphyca.idobata.android.data.api.Ui;
+import com.uphyca.idobata.android.service.PostImageService;
+import com.uphyca.idobata.android.service.PostTextService;
 import com.uphyca.idobata.model.Organization;
 import com.uphyca.idobata.model.Records;
 import com.uphyca.idobata.model.Room;
@@ -107,25 +109,39 @@ public class SendTo extends FragmentActivity {
                         Room room = mSeed.getRecords()
                                          .getRooms()
                                          .get(position);
-                        Organization org = findOrganizationById(room.getOrganizationId(), mSeed.getRecords()
-                                                                                               .getOrganizations());
-                        handleText(id);
+                        Organization organization = findOrganizationById(room.getOrganizationId(), mSeed.getRecords()
+                                                                                                        .getOrganizations());
+                        Uri roomUri = Uri.parse(String.format("https://idobata.io/#/organization/%s/room/%s", organization.getSlug(), room.getName()));
+                        Intent activityIntent = getActivity().getIntent();
+                        String type = activityIntent.getType();
+
+                        if (type.startsWith("text/")) {
+                            handleText(roomUri, activityIntent.getStringExtra(Intent.EXTRA_TEXT));
+                        } else if (type.startsWith("image/")) {
+                            handleImage(roomUri, activityIntent.<Uri> getParcelableExtra(Intent.EXTRA_STREAM));
+                        }
+
                         final Intent intent = new Intent(getActivity(), MainActivity.class);
                         intent.setAction(Intent.ACTION_MAIN);
                         intent.addCategory(Intent.CATEGORY_LAUNCHER);
-                        intent.setData(Uri.parse(String.format("https://idobata.io/#/organization/%s/room/%s", org.getSlug(), room.getName())));
+
+                        intent.setData(roomUri);
                         startActivity(intent);
                         getActivity().finish();
                     } catch (IdobataError idobataError) {
                         idobataError.printStackTrace();
                     }
                 }
+
             });
         }
 
-        private void handleText(long id) throws IdobataError {
-            Intent intent = getActivity().getIntent();
-            mIdobata.postMessage(id, intent.getStringExtra(Intent.EXTRA_TEXT));
+        private void handleImage(Uri roomUri, Uri dataUri) {
+            PostImageService.postImage(getActivity(), roomUri, dataUri);
+        }
+
+        private void handleText(Uri roomUri, String source) throws IdobataError {
+            PostTextService.postText(getActivity(), roomUri, source);
         }
 
         private CharSequence buildItem(Room room, Organization org) {

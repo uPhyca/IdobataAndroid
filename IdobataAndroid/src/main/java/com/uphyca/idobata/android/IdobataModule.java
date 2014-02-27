@@ -42,8 +42,9 @@ import com.uphyca.idobata.android.data.api.PollingInterval;
 import com.uphyca.idobata.android.data.api.StreamConnection;
 import com.uphyca.idobata.android.data.api.Ui;
 import com.uphyca.idobata.android.data.prefs.LongPreference;
-import com.uphyca.idobata.android.service.FileUploadService;
 import com.uphyca.idobata.android.service.IdobataService;
+import com.uphyca.idobata.android.service.PostImageService;
+import com.uphyca.idobata.android.service.PostTextService;
 import com.uphyca.idobata.android.ui.MainActivity;
 import com.uphyca.idobata.android.ui.SendTo;
 import com.uphyca.idobata.http.Client;
@@ -63,7 +64,7 @@ import dagger.Provides;
  * @author Sosuke Masui (masui@uphyca.com)
  */
 @Module(injects = {
-        IdobataService.class, FileUploadService.class, MainActivity.class, SendTo.Rooms.class
+        IdobataService.class, PostImageService.class, PostTextService.class, MainActivity.class, SendTo.Rooms.class
 })
 public class IdobataModule {
 

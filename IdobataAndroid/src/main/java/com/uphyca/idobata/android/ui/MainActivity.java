@@ -30,7 +30,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.uphyca.idobata.android.service.FileUploadService;
+import com.uphyca.idobata.android.service.PostImageService;
 import com.uphyca.idobata.android.service.IdobataService;
 import com.uphyca.idobata.android.InjectionUtils;
 import com.uphyca.idobata.android.R;
@@ -45,7 +45,7 @@ public class MainActivity extends ActionBarActivity {
     private static final String IMAGE_UPLOAD_INSTRUMENT = new StringBuilder().append("javascript:")
                                                                              .append("(function(){")
                                                                              .append("var $=Array.prototype.pop.call(document.getElementsByClassName('image-upload-field'));")
-                                                                             .append("if($ && !$.$weaved){$.addEventListener('click', function(){$IdobataInterface.uploadFile()}, false);$.$weaved=1;};")
+                                                                             .append("if($ && !$.$weaved){$.addEventListener('click', function(){$IdobataInterface.postImage()}, false);$.$weaved=1;};")
                                                                              .append("})();")
                                                                              .toString();
     private WebView mWebView;
@@ -152,7 +152,7 @@ public class MainActivity extends ActionBarActivity {
         if (requestCode == READ_REQUEST_CODE && resultCode == RESULT_OK) {
             if (resultData != null) {
                 Uri uri = resultData.getData();
-                FileUploadService.uploadFile(this, Uri.parse(mWebView.getUrl()), uri);
+                PostImageService.postImage(this, Uri.parse(mWebView.getUrl()), uri);
             }
         }
     }

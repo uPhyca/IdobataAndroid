@@ -30,16 +30,16 @@
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <!--
-                                <data android:mimeType="image/*" />
-                -->
+
+                <data android:mimeType="image/*" />
                 <data android:mimeType="text/*" />
             </intent-filter>
         </activity>
 
         <service android:name=".service.IdobataService" />
 
-        <service android:name=".service.FileUploadService" />
+        <service android:name=".service.PostTextService" />
+        <service android:name=".service.PostImageService" />
 
         <receiver android:name=".receiver.ConnectivityListener">
             <intent-filter>
