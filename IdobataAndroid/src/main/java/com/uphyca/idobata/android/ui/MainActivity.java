@@ -168,7 +168,7 @@ public class MainActivity extends ActionBarActivity {
         @JavascriptInterface
         @SuppressWarnings("unused")
         //Used by WebView.addJavascriptInterface()
-        public void uploadFile() {
+        public void postImage() {
             performFileSearch();
         }
     }
