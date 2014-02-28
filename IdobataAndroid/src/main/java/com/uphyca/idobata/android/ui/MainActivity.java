@@ -90,10 +90,18 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 setSupportProgressBarIndeterminateVisibility(false);
+                CookieSyncManager.getInstance()
+                                 .startSync();
                 if (url.startsWith("https://idobata.io/#/")) {
                     mWebView.loadUrl(IMAGE_UPLOAD_INSTRUMENT);
                     startService(new Intent(MainActivity.this, IdobataService.class));
                 }
+            }
+
+            @Override
+            public void onLoadResource(WebView view, String url) {
+                CookieSyncManager.getInstance()
+                                 .startSync();
             }
         });
 
@@ -109,20 +117,6 @@ public class MainActivity extends ActionBarActivity {
         }
 
         mWebView.loadUrl(url);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        CookieSyncManager.getInstance()
-                         .stopSync();
-    }
-
-    @Override
-    protected void onPause() {
-        CookieSyncManager.getInstance()
-                         .startSync();
-        super.onPause();
     }
 
     @Override

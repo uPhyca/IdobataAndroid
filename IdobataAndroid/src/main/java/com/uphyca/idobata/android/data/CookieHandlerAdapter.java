@@ -17,6 +17,7 @@
 package com.uphyca.idobata.android.data;
 
 import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 
 import java.io.IOException;
 import java.net.CookieHandler;
@@ -36,8 +37,8 @@ public class CookieHandlerAdapter extends CookieHandler {
 
     private final CookieManager mCookieManager;
 
-    public CookieHandlerAdapter() {
-        mCookieManager = CookieManager.getInstance();
+    public CookieHandlerAdapter(CookieManager cookieManager) {
+        mCookieManager = cookieManager;
     }
 
     @Override
@@ -60,5 +61,7 @@ public class CookieHandlerAdapter extends CookieHandler {
         for (String each : cookie) {
             mCookieManager.setCookie(uri.toString(), each);
         }
+        CookieSyncManager.getInstance()
+                         .startSync();
     }
 }

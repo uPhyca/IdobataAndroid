@@ -21,6 +21,7 @@ import com.uphyca.idobata.http.Request;
 import com.uphyca.idobata.http.UrlConnectionClient;
 
 import java.io.IOException;
+import java.net.CookieHandler;
 import java.net.HttpURLConnection;
 import java.net.URI;
 
@@ -32,6 +33,11 @@ public class OkClient extends UrlConnectionClient {
     private final OkHttpClient mOkClient;
 
     public OkClient(OkHttpClient okClient) {
+        mOkClient = okClient;
+    }
+
+    public OkClient(OkHttpClient okClient, CookieHandler cookieHandler) {
+        super(cookieHandler);
         mOkClient = okClient;
     }
 

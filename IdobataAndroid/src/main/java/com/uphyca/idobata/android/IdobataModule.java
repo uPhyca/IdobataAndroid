@@ -21,6 +21,7 @@ import android.app.Application;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.webkit.CookieManager;
 import com.squareup.okhttp.HttpResponseCache;
 import com.squareup.okhttp.OkHttpClient;
 import com.uphyca.idobata.CookieAuthenticator;
@@ -54,6 +55,7 @@ import dagger.Provides;
 import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
+import java.net.CookieHandler;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -92,8 +94,8 @@ public class IdobataModule {
 
     @Provides
     @Singleton
-    Client provideClient(OkHttpClient okHttpClient) {
-        return new OkClient(okHttpClient);
+    Client provideClient(OkHttpClient okHttpClient, CookieHandler cookieHandler) {
+        return new OkClient(okHttpClient, cookieHandler);
     }
 
     @Provides
@@ -106,8 +108,14 @@ public class IdobataModule {
 
     @Provides
     @Singleton
+    CookieHandler provideCookieHandler() {
+        return new CookieHandlerAdapter(CookieManager.getInstance());
+    }
+
+    @Provides
+    @Singleton
     RequestInterceptor provideRequestInterceptor() {
-        return new CookieAuthenticator(new CookieHandlerAdapter());
+        return new CookieAuthenticator();
     }
 
     @Provides
