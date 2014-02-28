@@ -30,6 +30,7 @@ import android.os.Looper;
 import android.os.Process;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+
 import com.uphyca.idobata.ErrorListener;
 import com.uphyca.idobata.Idobata;
 import com.uphyca.idobata.IdobataError;
@@ -54,12 +55,13 @@ import com.uphyca.idobata.model.Room;
 import com.uphyca.idobata.model.Seed;
 import com.uphyca.idobata.model.User;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
 
 import static com.uphyca.idobata.android.data.IdobataUtils.findOrganizationById;
 import static com.uphyca.idobata.android.data.IdobataUtils.findRoomById;

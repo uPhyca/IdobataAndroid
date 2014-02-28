@@ -12,7 +12,6 @@ public class ExponentialBackoff implements BackoffPolicy {
     private final long mInitialSleepTimeMillis;
     private final int mMaxTries;
 
-    private long mRetryTimeMillis;
     private long mSleepTimeMillis;
     private int mBackoffCount;
 
@@ -25,7 +24,6 @@ public class ExponentialBackoff implements BackoffPolicy {
 
     @Override
     public void backoff() {
-        mRetryTimeMillis = mEnvironment.elapsedRealtime() + mSleepTimeMillis;
         mSleepTimeMillis *= MULTPLIER;
         ++mBackoffCount;
     }
@@ -33,13 +31,12 @@ public class ExponentialBackoff implements BackoffPolicy {
     @Override
     public void reset() {
         mSleepTimeMillis = mInitialSleepTimeMillis;
-        mRetryTimeMillis = mEnvironment.elapsedRealtime();
         mBackoffCount = 0;
     }
 
     @Override
     public long getNextBackOffMillis() {
-        return mRetryTimeMillis;
+        return mEnvironment.elapsedRealtime() + mSleepTimeMillis;
     }
 
     @Override
