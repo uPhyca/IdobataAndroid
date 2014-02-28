@@ -40,6 +40,7 @@
 
         <service android:name=".service.PostTextService" />
         <service android:name=".service.PostImageService" />
+        <service android:name=".service.PostTouchService" />
 
         <receiver android:name=".receiver.ConnectivityListener">
             <intent-filter>

@@ -29,7 +29,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Process;
 import android.support.v4.app.NotificationCompat;
-
+import android.util.Log;
 import com.uphyca.idobata.ErrorListener;
 import com.uphyca.idobata.Idobata;
 import com.uphyca.idobata.IdobataError;
@@ -45,6 +45,7 @@ import com.uphyca.idobata.android.data.prefs.LongPreference;
 import com.uphyca.idobata.android.ui.MainActivity;
 import com.uphyca.idobata.event.ConnectionEvent;
 import com.uphyca.idobata.event.MessageCreatedEvent;
+import com.uphyca.idobata.event.RoomTouchedEvent;
 import com.uphyca.idobata.model.Message;
 import com.uphyca.idobata.model.MessageBean;
 import com.uphyca.idobata.model.Organization;
@@ -53,13 +54,12 @@ import com.uphyca.idobata.model.Room;
 import com.uphyca.idobata.model.Seed;
 import com.uphyca.idobata.model.User;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import javax.inject.Inject;
 
 import static com.uphyca.idobata.android.data.IdobataUtils.findOrganizationById;
 import static com.uphyca.idobata.android.data.IdobataUtils.findRoomById;
@@ -67,7 +67,7 @@ import static com.uphyca.idobata.android.data.IdobataUtils.findRoomById;
 /**
  * @author Sosuke Masui (masui@uphyca.com)
  */
-public class IdobataService extends Service implements IdobataStream.Listener<MessageCreatedEvent>, IdobataStream.ConnectionListener, ErrorListener {
+public class IdobataService extends Service implements IdobataStream.ConnectionListener, ErrorListener {
 
     private static final int OPEN = 0;
     private static final long DELAY_MILLIS_TO_RESTART = TimeUnit.SECONDS.toMillis(5);
@@ -156,10 +156,13 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
         executeAt(cur + DELAY_MILLIS_TO_RESTART);
     }
 
-    @Override
-    public void onEvent(MessageCreatedEvent event) {
+    private void onMessageCreatedEvent(MessageCreatedEvent event) {
         Message message = eventToMessage(event);
         filterAndNotifyMessage(message, event.getOrganizationSlug(), event.getRoomName());
+    }
+
+    private void onRoomTouchedEvent(RoomTouchedEvent event) {
+        Log.i("Idobata", "roomTouched: " + event);
     }
 
     private Message eventToMessage(MessageCreatedEvent event) {
@@ -269,7 +272,8 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
             mStream = mIdobata.openStream()
                               .setErrorListener(this)
                               .setConnectionListener(this)
-                              .subscribeMessageCreated(this);
+                              .subscribeMessageCreated(new MessageCreatedEventListener())
+                              .subscribeRoomTouched(new RoomTouchedEventListener());
         }
         mStream.open();
     }
@@ -321,6 +325,21 @@ public class IdobataService extends Service implements IdobataStream.Listener<Me
         CharSequence text = buildText(message);
         Notification notification = buildNotification(pi, title, text);
         mNotificationManager.notify(R.string.app_name, notification);
+    }
+
+    private final class MessageCreatedEventListener implements IdobataStream.Listener<MessageCreatedEvent> {
+
+        @Override
+        public void onEvent(MessageCreatedEvent event) {
+            onMessageCreatedEvent(event);
+        }
+    }
+
+    private final class RoomTouchedEventListener implements IdobataStream.Listener<RoomTouchedEvent> {
+        @Override
+        public void onEvent(RoomTouchedEvent event) {
+            onRoomTouchedEvent(event);
+        }
     }
 
     private final class ServiceHandler extends Handler {

@@ -21,7 +21,6 @@ import android.app.Application;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
-
 import com.squareup.okhttp.HttpResponseCache;
 import com.squareup.okhttp.OkHttpClient;
 import com.uphyca.idobata.CookieAuthenticator;
@@ -45,26 +44,25 @@ import com.uphyca.idobata.android.data.prefs.LongPreference;
 import com.uphyca.idobata.android.service.IdobataService;
 import com.uphyca.idobata.android.service.PostImageService;
 import com.uphyca.idobata.android.service.PostTextService;
+import com.uphyca.idobata.android.service.PostTouchService;
 import com.uphyca.idobata.android.ui.MainActivity;
 import com.uphyca.idobata.android.ui.SendTo;
 import com.uphyca.idobata.http.Client;
+import dagger.Module;
+import dagger.Provides;
 
+import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Singleton;
-
-import dagger.Module;
-import dagger.Provides;
-
 /**
  * @author Sosuke Masui (masui@uphyca.com)
  */
 @Module(injects = {
-        IdobataService.class, PostImageService.class, PostTextService.class, MainActivity.class, SendTo.Rooms.class
+        IdobataService.class, PostImageService.class, PostTextService.class, PostTouchService.class, MainActivity.class, SendTo.Rooms.class
 })
 public class IdobataModule {
 

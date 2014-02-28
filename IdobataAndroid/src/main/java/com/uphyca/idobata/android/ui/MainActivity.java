@@ -29,11 +29,11 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-
-import com.uphyca.idobata.android.service.PostImageService;
-import com.uphyca.idobata.android.service.IdobataService;
 import com.uphyca.idobata.android.InjectionUtils;
 import com.uphyca.idobata.android.R;
+import com.uphyca.idobata.android.service.IdobataService;
+import com.uphyca.idobata.android.service.PostImageService;
+import com.uphyca.idobata.android.service.PostTouchService;
 
 /**
  * @author Sosuke Masui (masui@uphyca.com)
@@ -100,7 +100,14 @@ public class MainActivity extends ActionBarActivity {
         setContentView(mWebView);
 
         Uri data = getIntent().getData();
-        String url = data == null ? "https://idobata.io/" : data.toString();
+        final String url;
+        if (data == null) {
+            url = "https://idobata.io/";
+        } else {
+            url = data.toString();
+            PostTouchService.postTouch(this, data);
+        }
+
         mWebView.loadUrl(url);
     }
 
