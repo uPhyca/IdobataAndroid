@@ -2,7 +2,7 @@
 
 project.ext {
     supportVersion = '+'
-    idobata4jVersion = '0.9.4-SNAPSHOT'
+    idobata4jVersion = '0.9.4'
     daggerVersion = '1.2.1'
     okVersion = '1.3.0'
 
