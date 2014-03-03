@@ -8,5 +8,5 @@ import javax.inject.Qualifier;
 
 @Qualifier
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Http {
+public @interface Main {
 }

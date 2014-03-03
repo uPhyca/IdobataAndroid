@@ -14,8 +14,8 @@ import com.uphyca.idobata.Idobata;
 import com.uphyca.idobata.IdobataError;
 import com.uphyca.idobata.android.InjectionUtils;
 import com.uphyca.idobata.android.R;
-import com.uphyca.idobata.android.data.api.Http;
-import com.uphyca.idobata.android.data.api.Ui;
+import com.uphyca.idobata.android.data.api.Main;
+import com.uphyca.idobata.android.data.api.Networking;
 import com.uphyca.idobata.android.service.PostImageService;
 import com.uphyca.idobata.android.service.PostTextService;
 import com.uphyca.idobata.model.Organization;
@@ -45,11 +45,11 @@ public class SendTo extends FragmentActivity {
         Idobata mIdobata;
 
         @Inject
-        @Http
+        @Networking
         Executor mExecutor;
 
         @Inject
-        @Ui
+        @Main
         Executor mDispatcher;
 
         private Seed mSeed;

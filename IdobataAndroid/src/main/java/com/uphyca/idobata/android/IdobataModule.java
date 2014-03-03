@@ -36,11 +36,11 @@ import com.uphyca.idobata.android.data.MentionFilter;
 import com.uphyca.idobata.android.data.OkClient;
 import com.uphyca.idobata.android.data.api.BackoffPolicy;
 import com.uphyca.idobata.android.data.api.Environment;
-import com.uphyca.idobata.android.data.api.Http;
+import com.uphyca.idobata.android.data.api.Main;
+import com.uphyca.idobata.android.data.api.Networking;
 import com.uphyca.idobata.android.data.api.MessageFilter;
 import com.uphyca.idobata.android.data.api.PollingInterval;
 import com.uphyca.idobata.android.data.api.StreamConnection;
-import com.uphyca.idobata.android.data.api.Ui;
 import com.uphyca.idobata.android.data.prefs.LongPreference;
 import com.uphyca.idobata.android.service.IdobataService;
 import com.uphyca.idobata.android.service.PostImageService;
@@ -151,14 +151,14 @@ public class IdobataModule {
 
     @Provides
     @Singleton
-    @Http
+    @Networking
     Executor provideHttpExecutor() {
         return Executors.newCachedThreadPool();
     }
 
     @Provides
     @Singleton
-    @Ui
+    @Main
     Executor provideUiExecutor() {
         return new AndroidExecutor();
     }
