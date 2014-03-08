@@ -5,6 +5,7 @@ import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+
 import com.uphyca.idobata.Idobata;
 import com.uphyca.idobata.IdobataError;
 import com.uphyca.idobata.android.InjectionUtils;
@@ -40,8 +41,7 @@ public class PostTouchService extends IntentService {
                                     .split("/");
             String organizationSlug = tuple[2];
             String roomName = tuple[4];
-            long roomId = mIdobata.getRooms(organizationSlug, roomName)
-                                  .get(0)
+            long roomId = mIdobata.getRoom(organizationSlug, roomName)
                                   .getId();
             mIdobata.postTouch(roomId);
         } catch (IdobataError idobataError) {

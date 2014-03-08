@@ -46,8 +46,7 @@ public class PostTextService extends IntentService {
                                     .split("/");
             String organizationSlug = tuple[2];
             String roomName = tuple[4];
-            long roomId = mIdobata.getRooms(organizationSlug, roomName)
-                                  .get(0)
+            long roomId = mIdobata.getRoom(organizationSlug, roomName)
                                   .getId();
             mIdobata.postMessage(roomId, source);
         } catch (IdobataError idobataError) {

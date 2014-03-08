@@ -49,8 +49,7 @@ public class PostImageService extends IntentService {
                                     .split("/");
             String organizationSlug = tuple[2];
             String roomName = tuple[4];
-            long roomId = mIdobata.getRooms(organizationSlug, roomName)
-                                  .get(0)
+            long roomId = mIdobata.getRoom(organizationSlug, roomName)
                                   .getId();
             Cursor meta = getContentResolver().query(dataUri, new String[] {
                 "mime_type"
