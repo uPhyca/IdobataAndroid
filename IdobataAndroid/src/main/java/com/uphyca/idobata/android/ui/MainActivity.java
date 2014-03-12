@@ -29,6 +29,7 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
 import com.uphyca.idobata.android.InjectionUtils;
 import com.uphyca.idobata.android.R;
 import com.uphyca.idobata.android.service.IdobataService;
@@ -84,7 +85,9 @@ public class MainActivity extends ActionBarActivity {
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                mRefreshMenu.setVisible(false);
                 setSupportProgressBarIndeterminateVisibility(true);
+
             }
 
             @Override
@@ -92,6 +95,7 @@ public class MainActivity extends ActionBarActivity {
                 setSupportProgressBarIndeterminateVisibility(false);
                 CookieSyncManager.getInstance()
                                  .startSync();
+                mRefreshMenu.setVisible(true);
                 if (url.startsWith("https://idobata.io/#/")) {
                     mWebView.loadUrl(IMAGE_UPLOAD_INSTRUMENT);
                     startService(new Intent(MainActivity.this, IdobataService.class));
@@ -128,11 +132,14 @@ public class MainActivity extends ActionBarActivity {
         super.onBackPressed();
     }
 
+    private MenuItem mRefreshMenu;
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+        mRefreshMenu = menu.findItem(R.id.action_refresh);
         return true;
     }
 
@@ -142,10 +149,26 @@ public class MainActivity extends ActionBarActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+        switch (id) {
+            case R.id.action_refresh:
+                onReloadMenuSelected();
+                return true;
+            case R.id.action_settings:
+                onSettingsMenuSelected();
+                return true;
+        }
         if (id == R.id.action_settings) {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    void onReloadMenuSelected() {
+        mWebView.reload();
+    }
+
+    void onSettingsMenuSelected() {
+
     }
 
     @Override

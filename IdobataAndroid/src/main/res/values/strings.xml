@@ -3,5 +3,6 @@
 
     <string name="app_name">Idobata</string>
     <string name="action_settings">Settings</string>
+    <string name="action_reload">Reload</string>
 
 </resources>
