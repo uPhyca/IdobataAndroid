@@ -22,6 +22,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.webkit.CookieManager;
+
 import com.squareup.okhttp.HttpResponseCache;
 import com.squareup.okhttp.OkHttpClient;
 import com.uphyca.idobata.CookieAuthenticator;
@@ -32,34 +33,42 @@ import com.uphyca.idobata.android.data.AndroidEnvironment;
 import com.uphyca.idobata.android.data.AndroidExecutor;
 import com.uphyca.idobata.android.data.CookieHandlerAdapter;
 import com.uphyca.idobata.android.data.ExponentialBackoff;
-import com.uphyca.idobata.android.data.MentionFilter;
+import com.uphyca.idobata.android.data.MentionsFilter;
 import com.uphyca.idobata.android.data.OkClient;
 import com.uphyca.idobata.android.data.api.BackoffPolicy;
 import com.uphyca.idobata.android.data.api.Environment;
 import com.uphyca.idobata.android.data.api.Main;
-import com.uphyca.idobata.android.data.api.Networking;
 import com.uphyca.idobata.android.data.api.MessageFilter;
+import com.uphyca.idobata.android.data.api.Networking;
+import com.uphyca.idobata.android.data.api.NotificationsEffectsLEDFlash;
+import com.uphyca.idobata.android.data.api.NotificationsEffectsSound;
+import com.uphyca.idobata.android.data.api.NotificationsEffectsVibrate;
+import com.uphyca.idobata.android.data.api.NotificationsMentions;
 import com.uphyca.idobata.android.data.api.PollingInterval;
 import com.uphyca.idobata.android.data.api.StreamConnection;
+import com.uphyca.idobata.android.data.prefs.BooleanPreference;
 import com.uphyca.idobata.android.data.prefs.LongPreference;
 import com.uphyca.idobata.android.service.IdobataService;
 import com.uphyca.idobata.android.service.PostImageService;
 import com.uphyca.idobata.android.service.PostTextService;
 import com.uphyca.idobata.android.service.PostTouchService;
 import com.uphyca.idobata.android.ui.MainActivity;
+import com.uphyca.idobata.android.ui.NotificationsSettingActivity;
 import com.uphyca.idobata.android.ui.OssLicensesActivity;
 import com.uphyca.idobata.android.ui.SendTo;
 import com.uphyca.idobata.http.Client;
-import dagger.Module;
-import dagger.Provides;
 
-import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.net.CookieHandler;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import javax.inject.Singleton;
+
+import dagger.Module;
+import dagger.Provides;
 
 /**
  * @author Sosuke Masui (masui@uphyca.com)
@@ -72,8 +81,12 @@ import java.util.concurrent.TimeUnit;
         MainActivity.class, //
         SendTo.Rooms.class, //
         OssLicensesActivity.LicenseDialogFragment.class, //
+        NotificationsSettingActivity.PrefsFragment.class, //
+        MentionsFilter.class, //
 })
 public class IdobataModule {
+
+    public static final String PREFS_NAME = "prefs";
 
     private final Application mApplication;
     private static final long DEFAULT_POLLING_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(5);
@@ -140,7 +153,7 @@ public class IdobataModule {
     @Provides
     @Singleton
     SharedPreferences provideSharedPreferences() {
-        return mApplication.getSharedPreferences("pref", Context.MODE_PRIVATE);
+        return mApplication.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
 
     @Provides
@@ -150,10 +163,38 @@ public class IdobataModule {
         return new LongPreference(pref, "polling_interval", DEFAULT_POLLING_INTERVAL_MILLIS);
     }
 
+    @Provides
+    @Singleton
+    @NotificationsMentions
+    BooleanPreference provideNotificationsMentionsPreference(SharedPreferences pref) {
+        return new BooleanPreference(pref, "notifications_mentions", false);
+    }
+
+    @Provides
+    @Singleton
+    @NotificationsEffectsVibrate
+    BooleanPreference provideNotificationsEffectsVibratePreference(SharedPreferences pref) {
+        return new BooleanPreference(pref, "notifications_effects_vibrate", false);
+    }
+
+    @Provides
+    @Singleton
+    @NotificationsEffectsLEDFlash
+    BooleanPreference provideNotificationsEffectsLEDFlashPreference(SharedPreferences pref) {
+        return new BooleanPreference(pref, "notifications_effects_led_flash", false);
+    }
+
+    @Provides
+    @Singleton
+    @NotificationsEffectsSound
+    BooleanPreference provideNotificationsEffectsSoundPreference(SharedPreferences pref) {
+        return new BooleanPreference(pref, "notifications_effects_sound", false);
+    }
+
     @Provides(type = Provides.Type.SET)
     @Singleton
-    MessageFilter provideMentionFilter() {
-        return new MentionFilter();
+    MessageFilter provideMentionFilter(MentionsFilter filter) {
+        return filter;
     }
 
     @Provides

@@ -41,8 +41,12 @@ import com.uphyca.idobata.android.R;
 import com.uphyca.idobata.android.data.api.BackoffPolicy;
 import com.uphyca.idobata.android.data.api.Environment;
 import com.uphyca.idobata.android.data.api.MessageFilter;
+import com.uphyca.idobata.android.data.api.NotificationsEffectsLEDFlash;
+import com.uphyca.idobata.android.data.api.NotificationsEffectsSound;
+import com.uphyca.idobata.android.data.api.NotificationsEffectsVibrate;
 import com.uphyca.idobata.android.data.api.PollingInterval;
 import com.uphyca.idobata.android.data.api.StreamConnection;
+import com.uphyca.idobata.android.data.prefs.BooleanPreference;
 import com.uphyca.idobata.android.data.prefs.LongPreference;
 import com.uphyca.idobata.android.ui.MainActivity;
 import com.uphyca.idobata.event.ConnectionEvent;
@@ -50,22 +54,13 @@ import com.uphyca.idobata.event.MessageCreatedEvent;
 import com.uphyca.idobata.event.RoomTouchedEvent;
 import com.uphyca.idobata.model.Message;
 import com.uphyca.idobata.model.MessageBean;
-import com.uphyca.idobata.model.Organization;
-import com.uphyca.idobata.model.Records;
-import com.uphyca.idobata.model.Room;
-import com.uphyca.idobata.model.Seed;
 import com.uphyca.idobata.model.User;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
-
-import static com.uphyca.idobata.android.data.IdobataUtils.findOrganizationById;
-import static com.uphyca.idobata.android.data.IdobataUtils.findRoomById;
 
 /**
  * @author Sosuke Masui (masui@uphyca.com)
@@ -90,6 +85,18 @@ public class IdobataService extends Service implements IdobataStream.ConnectionL
     @Inject
     @PollingInterval
     LongPreference mPollingIntervalPref;
+
+    @Inject
+    @NotificationsEffectsVibrate
+    BooleanPreference mNotificationEffectsVibratePref;
+
+    @Inject
+    @NotificationsEffectsLEDFlash
+    BooleanPreference mNotificationEffectsLEDFlashPref;
+
+    @Inject
+    @NotificationsEffectsSound
+    BooleanPreference mNotificationEffectsSoundPref;
 
     @Inject
     Environment mEnvironment;
@@ -188,26 +195,27 @@ public class IdobataService extends Service implements IdobataStream.ConnectionL
         return message;
     }
 
+    //FIXME https://github.com/uPhyca/IdobataAndroid/issues/3
     private void notifyUnreadMessages() throws IdobataError {
-        List<String> unreadMessageIds = new ArrayList<String>();
-        Seed seed = mIdobata.getSeed();
-        Records records = seed.getRecords();
-        List<Room> rooms = records.getRooms();
-        List<Organization> organizations = records.getOrganizations();
-        for (Room room : rooms) {
-            unreadMessageIds.addAll(room.getUnreadMessageIds());
-        }
-
-        List<Message> unreadMessages = mIdobata.getMessages(unreadMessageIds);
-        for (Message message : unreadMessages) {
-
-            //bodyPlain is always null when getting message from /api/messages
-            message.setBodyPlain(stripTags(message.getBody()));
-
-            Room room = findRoomById(message.getRoomId(), rooms);
-            Organization organization = findOrganizationById(room.getOrganizationId(), organizations);
-            filterAndNotifyMessage(message, organization.getSlug(), room.getName());
-        }
+        //        List<String> unreadMessageIds = new ArrayList<String>();
+        //        Seed seed = mIdobata.getSeed();
+        //        Records records = seed.getRecords();
+        //        List<Room> rooms = records.getRooms();
+        //        List<Organization> organizations = records.getOrganizations();
+        //        for (Room room : rooms) {
+        //            unreadMessageIds.addAll(room.getUnreadMessageIds());
+        //        }
+        //
+        //        List<Message> unreadMessages = mIdobata.getMessages(unreadMessageIds);
+        //        for (Message message : unreadMessages) {
+        //
+        //            //bodyPlain is always null when getting message from /api/messages
+        //            message.setBodyPlain(stripTags(message.getBody()));
+        //
+        //            Room room = findRoomById(message.getRoomId(), rooms);
+        //            Organization organization = findOrganizationById(room.getOrganizationId(), organizations);
+        //            filterAndNotifyMessage(message, organization.getSlug(), room.getName());
+        //        }
     }
 
     private String stripTags(String s) {
@@ -216,11 +224,11 @@ public class IdobataService extends Service implements IdobataStream.ConnectionL
 
     private void filterAndNotifyMessage(Message message, String organizationSlug, String roomName) {
         for (MessageFilter each : mMessageFilters) {
-            if (each.isSubscribed(mUser, message)) {
-                notifyMessage(message, organizationSlug, roomName);
+            if (!each.isSubscribed(mUser, message)) {
                 return;
             }
         }
+        notifyMessage(message, organizationSlug, roomName);
     }
 
     private void cancelPolling() {
@@ -315,14 +323,21 @@ public class IdobataService extends Service implements IdobataStream.ConnectionL
     }
 
     private Notification buildNotification(PendingIntent pi, CharSequence title, CharSequence text) {
-        return new NotificationCompat.Builder(IdobataService.this).setSmallIcon(R.drawable.ic_stat_notification)
-                                                                  .setContentTitle(title)
-                                                                  .setContentText(text)
-                                                                  .setTicker(title)
-                                                                  .setAutoCancel(true)
-                                                                  .setContentIntent(pi)
-                                                                  .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS)
-                                                                  .build();
+        int vibrate = mNotificationEffectsVibratePref.get() ? Notification.DEFAULT_VIBRATE : 0;
+        int ledFlash = mNotificationEffectsLEDFlashPref.get() ? Notification.DEFAULT_LIGHTS : 0;
+        int sound = mNotificationEffectsSoundPref.get() ? Notification.DEFAULT_SOUND : 0;
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(IdobataService.this).setSmallIcon(R.drawable.ic_stat_notification)
+                                                                                                .setContentTitle(title)
+                                                                                                .setContentText(text)
+                                                                                                .setTicker(new StringBuilder(title).append(' ')
+                                                                                                                                   .append(text))
+                                                                                                .setAutoCancel(true)
+                                                                                                .setContentIntent(pi)
+                                                                                                .setDefaults(vibrate | sound | ledFlash);
+        if (ledFlash != 0) {
+            builder.setLights(0xFF00FF00, 200, 1000);
+        }
+        return builder.build();
     }
 
     private void notifyMessage(Message message, String organizationSlug, String roomName) {

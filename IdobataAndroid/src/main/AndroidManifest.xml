@@ -42,6 +42,11 @@
             android:parentActivityName=".ui.MainActivity"/>
 
         <activity
+            android:name=".ui.NotificationsSettingActivity"
+            android:label="@string/label_notifications_settings"
+            android:parentActivityName=".ui.SettingActivity"/>
+
+        <activity
             android:name=".ui.AboutActivity"
             android:label="@string/label_about"
             android:parentActivityName=".ui.SettingActivity"/>

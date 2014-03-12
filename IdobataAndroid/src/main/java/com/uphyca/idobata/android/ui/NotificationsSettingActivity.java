@@ -17,23 +17,21 @@
 package com.uphyca.idobata.android.ui;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
-import android.preference.Preference;
 import android.preference.PreferenceFragment;
-import android.view.View;
 
+import com.uphyca.idobata.android.IdobataModule;
 import com.uphyca.idobata.android.R;
 
 /**
  * @author Sosuke Masui (masui@uphyca.com)
  */
-public class SettingActivity extends Activity {
+public class NotificationsSettingActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
+        setContentView(R.layout.activity_notifications_settings);
     }
 
     public static class PrefsFragment extends PreferenceFragment {
@@ -41,25 +39,9 @@ public class SettingActivity extends Activity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            addPreferencesFromResource(R.xml.prefs_setting);
-        }
-
-        @Override
-        public void onViewCreated(View view, Bundle savedInstanceState) {
-            findPreference("notifications").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference preference) {
-                    startActivity(new Intent(getActivity(), NotificationsSettingActivity.class));
-                    return true;
-                }
-            });
-            findPreference("about").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference preference) {
-                    startActivity(new Intent(getActivity(), AboutActivity.class));
-                    return true;
-                }
-            });
+            getPreferenceManager().setSharedPreferencesName("");
+            getPreferenceManager().setSharedPreferencesName(IdobataModule.PREFS_NAME);
+            addPreferencesFromResource(R.xml.prefs_notifications_setting);
         }
     }
 }
