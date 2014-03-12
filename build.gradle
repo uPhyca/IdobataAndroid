@@ -23,6 +23,16 @@ buildscript {
 allprojects {
     repositories {
         mavenCentral()
+        maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
         mavenLocal()
+    }
+
+    File propFile = rootProject.file("deploy.properties")
+    if (propFile.exists()) {
+        Properties props = new Properties()
+        props.load(new FileInputStream(rootProject.file("deploy.properties")))
+        props.entrySet().each {
+            project.ext.set(it.key, it.value)
+        }
     }
 }

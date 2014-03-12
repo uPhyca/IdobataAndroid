@@ -1,0 +1,55 @@
+apply plugin: 'android'
+
+def gitSha = 'git rev-parse --short HEAD'.execute([], project.rootDir).text.trim()
+def buildTime = new Date().format("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "19.0.3"
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 19
+        versionCode VERSION_CODE as int
+        versionName VERSION_NAME
+
+        buildConfigField "String", "GIT_SHA", "\"${gitSha}\""
+        buildConfigField "String", "BUILD_TIME", "\"${buildTime}\""
+    }
+
+    signingConfigs {
+        if (project.has("STORE_FILE")) {
+            release {
+                storeFile file(STORE_FILE)
+                storePassword STORE_PASSWORD
+                keyAlias KEY_ALIAS
+                keyPassword KEY_PASSWORD
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            packageNameSuffix ".debug"
+            versionNameSuffix '-debug'
+        }
+
+        release {
+            runProguard true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+
+            if (project.has("STORE_FILE")) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+}
+
+
+dependencies {
+    compile "com.android.support:appcompat-v7:${supportVersion}"
+    compile "com.uphyca.idobata:idobata4j-core:${idobata4jVersion}"
+    compile "com.squareup.dagger:dagger:${daggerVersion}"
+    compile "com.squareup.okhttp:okhttp:${okVersion}"
+    provided "com.squareup.dagger:dagger-compiler:${daggerVersion}"
+}

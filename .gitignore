@@ -21,5 +21,6 @@ obj
 
 .gradle
 local.properties
+deploy.properties
 
 .DS_Store

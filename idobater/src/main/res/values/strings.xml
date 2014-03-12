@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">IdobataAndroid</string>
+    <string name="app_name">idobater</string>
     <string name="action_settings">Settings</string>
     <string name="action_reload">Reload</string>
     <string name="label_settings">Settings</string>
     <string name="label_notifications_settings">Notifications</string>
-    <string name="label_about">About IdobataAndroid</string>
+    <string name="label_about">About idobater</string>
     <string name="label_oss_licenses">Open source licenses</string>
     <string name="label_oss_license">Notice for %1$s</string>
-    <string name="title_about">About IdobataAndroid</string>
+    <string name="title_about">About idobater</string>
     <string name="title_oss_licenses">Open source licenses</string>
     <string name="summary_oss_licenses">License details for open source software</string>
     <string name="title_notifications">Notifications</string>
-    <string name="title_build_version">Build version</string>
+
     <string name="title_source_code">Source code</string>
     <string name="github_url">https://github.com/uPhyca/IdobataAndroid</string>
     <string name="title_notifications_mentions">Mentions</string>
@@ -21,5 +21,10 @@
     <string name="title_notifications_effects_vibrate">Vibrate</string>
     <string name="title_notifications_effects_led_flash">LED Flash</string>
     <string name="title_notifications_effects_sound">Sound effects</string>
+    <string name="title_build_information">Build information</string>
+    <string name="title_build_version_name">Version name</string>
+    <string name="title_build_version">Version code</string>
+    <string name="title_build_sha">SHA</string>
+    <string name="title_build_date">Date</string>
 
 </resources>

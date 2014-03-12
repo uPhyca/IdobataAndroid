@@ -48,7 +48,11 @@ public class AboutActivity extends Activity {
         @Override
         public void onViewCreated(View view, Bundle savedInstanceState) {
             super.onViewCreated(view, savedInstanceState);
-            findPreference("build_version").setSummary(BuildConfig.VERSION_NAME);
+            findPreference("build_version_name").setSummary(BuildConfig.VERSION_NAME);
+            findPreference("build_version").setSummary(String.valueOf(BuildConfig.VERSION_CODE));
+            findPreference("build_sha").setSummary(BuildConfig.GIT_SHA);
+
+            findPreference("build_date").setSummary(BuildConfig.BUILD_TIME);
 
             findPreference("oss_licenses").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
