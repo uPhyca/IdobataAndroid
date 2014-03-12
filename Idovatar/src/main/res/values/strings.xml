@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">idobater</string>
+    <string name="app_name">Idovatar</string>
     <string name="action_settings">Settings</string>
     <string name="action_reload">Reload</string>
     <string name="label_settings">Settings</string>
     <string name="label_notifications_settings">Notifications</string>
-    <string name="label_about">About idobater</string>
+    <string name="label_about">About Idovatar</string>
     <string name="label_oss_licenses">Open source licenses</string>
     <string name="label_oss_license">Notice for %1$s</string>
-    <string name="title_about">About idobater</string>
+    <string name="title_about">About Idovatar</string>
     <string name="title_oss_licenses">Open source licenses</string>
     <string name="summary_oss_licenses">License details for open source software</string>
     <string name="title_notifications">Notifications</string>
