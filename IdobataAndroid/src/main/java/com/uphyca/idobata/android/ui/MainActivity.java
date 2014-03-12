@@ -168,7 +168,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
     void onSettingsMenuSelected() {
-
+        startActivity(new Intent(this, SettingActivity.class));
     }
 
     @Override

@@ -47,6 +47,7 @@ import com.uphyca.idobata.android.service.PostImageService;
 import com.uphyca.idobata.android.service.PostTextService;
 import com.uphyca.idobata.android.service.PostTouchService;
 import com.uphyca.idobata.android.ui.MainActivity;
+import com.uphyca.idobata.android.ui.OssLicensesActivity;
 import com.uphyca.idobata.android.ui.SendTo;
 import com.uphyca.idobata.http.Client;
 import dagger.Module;
@@ -64,7 +65,13 @@ import java.util.concurrent.TimeUnit;
  * @author Sosuke Masui (masui@uphyca.com)
  */
 @Module(injects = {
-        IdobataService.class, PostImageService.class, PostTextService.class, PostTouchService.class, MainActivity.class, SendTo.Rooms.class
+        IdobataService.class, //
+        PostImageService.class, //
+        PostTextService.class, //
+        PostTouchService.class, //
+        MainActivity.class, //
+        SendTo.Rooms.class, //
+        OssLicensesActivity.LicenseDialogFragment.class, //
 })
 public class IdobataModule {
 

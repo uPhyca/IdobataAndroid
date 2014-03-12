@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceScreen
+        android:key="build_version"
+        android:title="@string/title_build_version" />
+
+    <PreferenceScreen
+        android:key="source_code"
+        android:title="@string/title_source_code"
+        android:summary="@string/github_url">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="@string/github_url" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:key="oss_licenses"
+        android:title="@string/title_oss_licenses"
+        android:summary="@string/summary_oss_licenses" />
+
+</PreferenceScreen>

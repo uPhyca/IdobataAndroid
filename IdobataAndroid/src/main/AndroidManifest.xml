@@ -36,6 +36,21 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.SettingActivity"
+            android:label="@string/label_settings"
+            android:parentActivityName=".ui.MainActivity"/>
+
+        <activity
+            android:name=".ui.AboutActivity"
+            android:label="@string/label_about"
+            android:parentActivityName=".ui.SettingActivity"/>
+
+        <activity
+            android:name=".ui.OssLicensesActivity"
+            android:label="@string/label_oss_licenses"
+            android:parentActivityName=".ui.AboutActivity"/>
+
         <service android:name=".service.IdobataService" />
 
         <service android:name=".service.PostTextService" />
