@@ -51,6 +51,8 @@ public class MainActivity extends ActionBarActivity {
                                                                              .toString();
     private WebView mWebView;
 
+    private boolean isProgressBarVisible = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,14 +87,15 @@ public class MainActivity extends ActionBarActivity {
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                mRefreshMenu.setVisible(false);
+                if (mRefreshMenu != null) mRefreshMenu.setVisible(false);
                 setSupportProgressBarIndeterminateVisibility(true);
-
+                isProgressBarVisible = true;
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
                 setSupportProgressBarIndeterminateVisibility(false);
+                isProgressBarVisible = false;
                 CookieSyncManager.getInstance()
                                  .startSync();
                 mRefreshMenu.setVisible(true);
@@ -140,6 +143,7 @@ public class MainActivity extends ActionBarActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         mRefreshMenu = menu.findItem(R.id.action_refresh);
+        if (isProgressBarVisible) mRefreshMenu.setVisible(false);
         return true;
     }
 
